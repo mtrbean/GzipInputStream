@@ -7,7 +7,9 @@ Example Usage:
 --------------
 
 ```objective-c
-GzInputStream *is = [[GzInputStream alloc] initWithFileAtPath:@"text.gz"];
+#import "GzipInputStream.h"
+
+GzipInputStream *is = [[GzipInputStream alloc] initWithFileAtPath:@"text.gz"];
 [is open];
 NSString *line;
 while ((line = [is readLine])) {
@@ -16,3 +18,5 @@ while ((line = [is readLine])) {
 [is close];
 [is release];
 ```
+
+Link with libz.dylib and compile :)
