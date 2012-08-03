@@ -6,7 +6,7 @@ A dead simple subclass of NSInputStream that reads .gz files with reading line b
 Notes:
 ------
 - Requires Clang/LLVM 2.0 compiler
-- The only initializer supported is (id)initWithFileAtPath:(NSString *)path
+- The `-(id)initWithData:(NSData *)data` initializer is not supported
 
 Example Usage:
 --------------

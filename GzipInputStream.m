@@ -27,7 +27,15 @@
 }
 
 - (id)initWithData:(NSData *)data { [self release]; return nil; }
-- (id)initWithURL:(NSURL *)url { [self release]; return nil; }
+
+- (id)initWithURL:(NSURL *)url
+{
+    if ([url isFileURL])
+        return [self initWithFileAtPath:[url path]];
+    else
+        return nil;
+}
+
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
 - (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
 
