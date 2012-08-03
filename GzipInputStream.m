@@ -32,8 +32,10 @@
 {
     if ([url isFileURL])
         return [self initWithFileAtPath:[url path]];
-    else
+    else {
+        [self release];
         return nil;
+    }
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
