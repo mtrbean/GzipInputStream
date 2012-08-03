@@ -1,29 +1,36 @@
 #import "GzipInputStream.h"
 
-@implementation GzInputStream
+@interface GzipInputStream() 
+{
+    gzFile* gzfile;
+    NSString *filepath;
+    NSMutableData *residualData;
+    NSStreamStatus streamStatus;    
+}
+- (NSString *)firstLineFromData:(NSMutableData *)data;
+@end
+
+@implementation GzipInputStream
 
 - (id)initWithFileAtPath:(NSString *)path
 {
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        [self release];
         return nil;
     }
-    self = [super init];
-    if (self) {
+    if (self = [super init]) {
         residualData = nil;
         filepath = [path retain];
+        streamStatus = NSStreamStatusNotOpen;
     }
     return self;
 }
 
-- (id)initWithData:(NSData *)data
-{
-    self = [super init];
-    if (self) {
-        residualData = [data copy];
-        filepath = nil;
-    }
-    return self;    
-}
+- (id)initWithData:(NSData *)data { [self release]; return nil; }
+- (id)initWithURL:(NSURL *)url { [self release]; return nil; }
+- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
+- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
+
 
 - (void)dealloc
 {
@@ -38,9 +45,9 @@
     if (filepath) {
         gzfile = gzopen([filepath UTF8String], "rb");
         residualData = [[NSMutableData alloc] initWithCapacity:1024];
+        streamStatus = NSStreamStatusOpen;
     }
 }
-
 
 - (void)close
 {
@@ -52,11 +59,22 @@
         [residualData release];
         residualData = nil;
     }
+    streamStatus = NSStreamStatusClosed;
 }
 
 - (NSInteger)read:(uint8_t *)buffer maxLength:(NSUInteger)len
 {
-    int bytesRead = gzread(gzfile, buffer, len);
+    streamStatus = NSStreamStatusReading;
+    int bytesRead = gzread(gzfile, buffer, (unsigned)len);
+    if (bytesRead < 0) {
+        streamStatus = NSStreamStatusError;
+    }
+    else if (bytesRead == 0) {
+        streamStatus = NSStreamStatusAtEnd;
+    }
+    else {
+        streamStatus = NSStreamStatusOpen;
+    }
     return bytesRead;
 }
 
@@ -71,6 +89,7 @@
             line = [self firstLineFromData:residualData];
         }
         else if (residualData.length == 0) {
+            streamStatus = NSStreamStatusAtEnd;
             return nil;
         }
         else {
@@ -102,6 +121,11 @@
         return NO;
     }
     return YES;
+}
+
+- (NSStreamStatus)streamStatus
+{
+    return streamStatus;
 }
 
 - (NSError *)streamError
