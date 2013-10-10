@@ -132,9 +132,7 @@
     uint8_t buffer[bufferSize];
     NSInteger bytesRead = [self read:buffer maxLength:bufferSize];
     if (bytesRead > 0) {
-        [residualData appendBytes:buffer length:bytesRead];
-        NSData *decompressedData = [NSData dataWithData:residualData];
-        [residualData setLength:0];
+        NSData *decompressedData = [NSData dataWithBytes:buffer length:bytesRead];
         return decompressedData;
     }
     else if (residualData.length == 0) {
@@ -143,7 +141,6 @@
     }
     else {
         streamStatus = NSStreamStatusError;
-        [residualData setLength:0];
         return nil;
     }
 }
