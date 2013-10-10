@@ -18,33 +18,31 @@
 
 #import "GzipInputStream.h"
 
-@interface GzipInputStream() 
+@interface GzipInputStream()
 {
     gzFile* gzfile;
     NSString *filepath;
     NSMutableData *residualData;
-    NSStreamStatus streamStatus;    
+    NSStreamStatus streamStatus;
 }
 - (NSString *)firstLineFromData:(NSMutableData *)data;
 @end
 
 @implementation GzipInputStream
 
-- (id)initWithData:(NSData *)data 
+- (id)initWithData:(NSData *)data
 {
-    [self release]; 
-    return nil; 
+    return nil;
 }
 
 - (id)initWithFileAtPath:(NSString *)path
 {
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
-        [self release];
         return nil;
     }
     if (self = [super init]) {
         residualData = nil;
-        filepath = [path retain];
+        filepath = path;
         streamStatus = NSStreamStatusNotOpen;
     }
     return self;
@@ -55,7 +53,6 @@
     if ([url isFileURL])
         return [self initWithFileAtPath:[url path]];
     else {
-        [self release];
         return nil;
     }
 }
@@ -66,11 +63,7 @@
 
 - (void)dealloc
 {
-    [self close];
-    [filepath release];
-    [residualData release];
-    [super dealloc];
-}
+    [self close];}
 
 - (void)open
 {
@@ -88,7 +81,6 @@
         gzfile = NULL;
     }
     if (residualData) {
-        [residualData release];
         residualData = nil;
     }
     streamStatus = NSStreamStatusClosed;
@@ -125,15 +117,35 @@
             return nil;
         }
         else {
-            line = [[[NSString alloc] initWithBytes:residualData.bytes 
-                                             length:residualData.length 
-                                           encoding:NSUTF8StringEncoding] 
-                    autorelease];
+            line = [[NSString alloc] initWithBytes:residualData.bytes
+                                             length:residualData.length
+                                           encoding:NSUTF8StringEncoding];
             line = [line stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
             [residualData setLength:0];
         }
     }
     return line;
+}
+
+- (NSData *)readData:(NSUInteger)bufferSize;
+{
+    uint8_t buffer[bufferSize];
+    NSInteger bytesRead = [self read:buffer maxLength:bufferSize];
+    if (bytesRead > 0) {
+        [residualData appendBytes:buffer length:bytesRead];
+        NSData *decompressedData = [NSData dataWithData:residualData];
+        [residualData setLength:0];
+        return decompressedData;
+    }
+    else if (residualData.length == 0) {
+        streamStatus = NSStreamStatusAtEnd;
+        return nil;
+    }
+    else {
+        streamStatus = NSStreamStatusError;
+        [residualData setLength:0];
+        return nil;
+    }
 }
 
 - (BOOL)getBuffer:(uint8_t **)buffer length:(NSUInteger *)len
@@ -177,7 +189,7 @@
     uint8_t *pos = memchr(buf, '\n', data.length);
     if (pos) {
         size_t len = pos - buf;
-        line = [[[NSString alloc] initWithBytes:buf length:len encoding:NSUTF8StringEncoding] autorelease];
+        line = [[NSString alloc] initWithBytes:buf length:len encoding:NSUTF8StringEncoding];
         line = [line stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
         [data replaceBytesInRange:NSMakeRange(0,len+1) withBytes:NULL length:0];
     }

@@ -22,5 +22,6 @@
 @interface GzipInputStream : NSInputStream
 
 - (NSString *)readLine;
+- (NSData *)readData:(NSUInteger)bufferSize;
 
 @end
