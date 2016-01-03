@@ -21,6 +21,11 @@
 
 @interface GzipInputStream : NSInputStream
 
+/** You must use GzipInputStream only with a file
+
+@see `-initWithFileAtPath:` */
+- (id)initWithData:(NSData *)data NS_UNAVAILABLE;
+
 - (NSString *)readLine;
 - (NSData *)readData:(NSUInteger)bufferSize;
 
