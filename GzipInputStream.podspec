@@ -9,5 +9,5 @@ Pod::Spec.new do |spec|
   spec.source_files = 'GzipInputStream.{h,m}'
   spec.framework    = 'Foundation'
   spec.libraries    = 'z'
-  spec.requires_arc = false
+  spec.requires_arc = true
 end
