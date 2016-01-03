@@ -48,6 +48,10 @@
     return self;
 }
 
+// we promise -initWithFileAtPath: will call a designated initializer!
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (id)initWithURL:(NSURL *)url
 {
     if ([url isFileURL])
@@ -56,6 +60,7 @@
         return nil;
     }
 }
+#pragma clang diagnostic pop
 
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
 - (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {}
