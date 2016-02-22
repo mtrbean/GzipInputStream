@@ -17,6 +17,7 @@
 //
 
 #import "GzipInputStream.h"
+#include <zlib.h>
 
 @interface GzipInputStream()
 {
